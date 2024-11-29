@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="icu.ydg.mapper.UserMapper">
+
+    <resultMap id="BaseResultMap" type="icu.ydg.model.domain.User">
+            <id property="id" column="id" jdbcType="BIGINT"/>
+            <result property="userAccount" column="user_account" jdbcType="VARCHAR"/>
+            <result property="userPassword" column="user_password" jdbcType="VARCHAR"/>
+            <result property="userName" column="user_name" jdbcType="VARCHAR"/>
+            <result property="userGender" column="user_gender" jdbcType="TINYINT"/>
+            <result property="userAge" column="user_age" jdbcType="TINYINT"/>
+            <result property="userEmail" column="user_email" jdbcType="VARCHAR"/>
+            <result property="userPhone" column="user_phone" jdbcType="CHAR"/>
+            <result property="userAvatar" column="user_avatar" jdbcType="VARCHAR"/>
+            <result property="userProfile" column="user_profile" jdbcType="VARCHAR"/>
+            <result property="userRole" column="user_role" jdbcType="VARCHAR"/>
+            <result property="friendList" column="friend_list" jdbcType="VARCHAR"/>
+            <result property="tags" column="tags" jdbcType="VARCHAR"/>
+            <result property="createBy" column="create_by" jdbcType="BIGINT"/>
+            <result property="updateBy" column="update_by" jdbcType="BIGINT"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="isDelete" column="is_delete" jdbcType="TINYINT"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,user_account,user_password,user_age,
+        user_name,user_gender,user_email,
+        user_phone,user_avatar,user_profile,
+        user_role,friend_list,tags,
+        create_by,update_by,create_time,
+        update_time,is_delete
+    </sql>
+<!--    <select id="findUsersByTags" resultType="icu.ydg.model.domain.User">-->
+<!--        SELECT <include refid="Base_Column_List" />-->
+<!--        FROM user-->
+<!--        WHERE-->
+<!--        is_delete = 0-->
+<!--        AND-->
+<!--        <foreach collection="tags" item="tag" separator=" OR ">-->
+<!--            FIND_IN_SET(#{tag}, tags)-->
+<!--        </foreach>-->
+<!--    </select>-->
+    <select id="getRandomUser" resultType="icu.ydg.model.domain.User">
+        SELECT *
+        FROM user
+        WHERE id >= (SELECT floor(RAND() * (SELECT MAX(id) FROM `user`)))
+        ORDER BY id
+        LIMIT #{number};
+    </select>
+    <!-- 获取用户增长趋势的查询 -->
+    <select id="getUserGrowthData" resultType="icu.ydg.model.dto.user.UserGrowthRequest">
+        SELECT 
+            DATE_FORMAT(create_time, '%Y-%m-%d') AS date, 
+            COUNT(*) AS user_count
+        FROM user
+        WHERE is_delete = 0
+        GROUP BY date
+        ORDER BY date DESC
+    </select>
+</mapper>
