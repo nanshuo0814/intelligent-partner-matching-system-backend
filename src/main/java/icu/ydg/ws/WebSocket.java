@@ -294,7 +294,7 @@ public class WebSocket {
         chatMessageVo.setTeamId(team.getId());
         chatMessageVo.setChatType(chatType);
         chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
-        if (Objects.equals(user.getId(), team.getCreateBy()) || user.getUserRole() == UserConstant.ADMIN_ROLE) {
+        if (Objects.equals(user.getId(), team.getCreateBy()) || Objects.equals(user.getUserRole(), UserConstant.ADMIN_ROLE)) {
             chatMessageVo.setIsAdmin(true);
         }
         User loginUser = (User) this.httpSession.getAttribute(UserConstant.USER_LOGIN_STATE);
