@@ -24,6 +24,7 @@ import icu.ydg.model.enums.sort.ChatSortFieldEnums;
 import icu.ydg.model.vo.chat.ChatMessageVO;
 import icu.ydg.model.vo.chat.ChatVO;
 import icu.ydg.model.vo.user.UserVO;
+import icu.ydg.model.vo.ws.WebSocketVO;
 import icu.ydg.service.ChatService;
 import icu.ydg.service.TeamService;
 import icu.ydg.service.UserService;
@@ -386,9 +387,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         if (toId == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        List<ChatMessageVO> chatRecords = getCache(RedisKeyConstant.CACHE_CHAT_PRIVATE, loginUser.getId() + String.valueOf(toId));
+        List<ChatMessageVO> chatRecords = getCache(RedisKeyConstant.CACHE_CHAT_PRIVATE, loginUser.getId() + "-" + String.valueOf(toId));
         if (chatRecords != null) {
-            saveCache(RedisKeyConstant.CACHE_CHAT_PRIVATE, loginUser.getId() + String.valueOf(toId), chatRecords);
+            saveCache(RedisKeyConstant.CACHE_CHAT_PRIVATE, loginUser.getId() + "-" + String.valueOf(toId), chatRecords);
             return chatRecords;
         }
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
@@ -408,7 +409,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             }
             return chatMessageVo;
         }).collect(Collectors.toList());
-        saveCache(RedisKeyConstant.CACHE_CHAT_PRIVATE, loginUser.getId() + String.valueOf(toId), chatMessageVOList);
+        saveCache(RedisKeyConstant.CACHE_CHAT_PRIVATE, loginUser.getId() + "-" + String.valueOf(toId), chatMessageVOList);
         return chatMessageVOList;
     }
 
@@ -427,8 +428,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         User fromUser = userService.getById(userId);
         User toUser = userService.getById(toId);
-        UserVO fromWebSocketVo = new UserVO();
-        UserVO toWebSocketVo = new UserVO();
+        WebSocketVO fromWebSocketVo = new WebSocketVO();
+        WebSocketVO toWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
         BeanUtils.copyProperties(toUser, toWebSocketVo);
         chatMessageVo.setFromUser(fromWebSocketVo);
@@ -679,7 +680,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     private ChatMessageVO chatResult(Long userId, String text) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         User fromUser = userService.getById(userId);
-        UserVO fromWebSocketVo = new UserVO();
+        WebSocketVO fromWebSocketVo = new WebSocketVO();
         BeanUtils.copyProperties(fromUser, fromWebSocketVo);
         chatMessageVo.setFromUser(fromWebSocketVo);
         chatMessageVo.setText(text);
@@ -734,6 +735,9 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         } else {
             // 私人聊天、队伍聊天等等
             messageJSONStr = (String) redisUtils.get(redisKey + id);
+        }
+        if (messageJSONStr == null) {
+            return null;
         }
         chatRecords = JsonUtils.jsonToList(messageJSONStr, ChatMessageVO.class);
         return chatRecords;

@@ -8,7 +8,8 @@ server:
     session:
       cookie: # 自定义 cookie 属性
         max-age: 86400 # 单位秒
-
+#        domain: localhost
+#        http-only: false
 # todo 公共配置文件
 spring:
   application:

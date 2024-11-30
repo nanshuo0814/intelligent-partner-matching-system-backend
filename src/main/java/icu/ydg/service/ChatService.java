@@ -109,7 +109,7 @@ public interface ChatService extends IService<Chat> {
     void onlyMeOrAdministratorCanDo(HttpServletRequest request, Long id);
 
     /**
-     * 获取私人聊天
+     * 获取聊天
      *
      * @param chatRequest 聊天请求
      * @param chatType    聊天类型

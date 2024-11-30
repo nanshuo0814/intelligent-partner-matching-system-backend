@@ -1,6 +1,6 @@
 package icu.ydg.model.vo.chat;
 
-import icu.ydg.model.vo.user.UserVO;
+import icu.ydg.model.vo.ws.WebSocketVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -24,12 +24,12 @@ public class ChatMessageVO implements Serializable {
      * 形式用户
      */
     @ApiModelProperty(value = "发送id")
-    private UserVO fromUser;
+    private WebSocketVO fromUser;
     /**
      * 用户
      */
     @ApiModelProperty(value = "接收id")
-    private UserVO toUser;
+    private WebSocketVO toUser;
     /**
      * 团队id
      */
