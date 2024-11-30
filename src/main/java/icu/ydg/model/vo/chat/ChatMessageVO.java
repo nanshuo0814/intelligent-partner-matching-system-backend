@@ -14,7 +14,7 @@ import java.io.Serializable;
  * @date 2024/11/28
  */
 @Data
-@ApiModel(value = "聊天消息返回")
+@ApiModel(value = "ChatMessageVO", description = "聊天消息返回")
 public class ChatMessageVO implements Serializable {
     /**
      * 串行版本uid

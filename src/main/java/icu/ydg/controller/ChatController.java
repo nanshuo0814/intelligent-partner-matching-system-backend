@@ -42,6 +42,79 @@ public class ChatController {
     @Resource
     private UserService userService;
 
+    /**
+     * 大厅聊天
+     *
+     * @param request 请求
+     * @return {@link ApiResponse}<{@link List}<{@link ChatMessageVO}>>
+     */
+    @GetMapping("/hallChat")
+    @ApiOperation(value = "获取大厅聊天")
+    public ApiResponse<List<ChatMessageVO>> getHallChat(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        List<ChatMessageVO> hallChat = chatService.getHallChat(3, loginUser);
+        return ApiResult.success(hallChat);
+    }
+
+    /**
+     * 团队聊天
+     *
+     * @param chatRequest 聊天请求
+     * @param request     请求
+     * @return {@link ApiResponse}<{@link List}<{@link ChatMessageVO}>>
+     */
+    @PostMapping("/teamChat")
+    @ApiOperation(value = "获取队伍聊天")
+    public ApiResponse<List<ChatMessageVO>> getTeamChat(@RequestBody ChatRequest chatRequest,
+                                                         HttpServletRequest request) {
+        if (chatRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求有误");
+        }
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest, 2, loginUser);
+        return ApiResult.success(teamChat);
+    }
+
+    /**
+     * 阅读私人信息
+     *
+     * @param request  请求
+     * @param remoteId 远程id
+     * @return {@link ApiResponse }<{@link Boolean }>
+     */
+    @PostMapping("/private/read")
+    public ApiResponse<Boolean> readPrivateMessage(HttpServletRequest request, Long remoteId) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Boolean flag = chatService.readPrivateMessage(loginUser.getId(), remoteId);
+        return ApiResult.success(flag);
+    }
+
+    /**
+     * 获取私聊未读消息数量
+     *
+     * @param request 要求
+     * @return {@link ApiResponse}<{@link Integer}>
+     */
+    @GetMapping("/private/num")
+    @ApiOperation(value = "获取私聊未读消息数量")
+    public ApiResponse<Integer> getUnreadPrivateNum(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Integer unreadNum = chatService.getUnReadPrivateNum(loginUser.getId());
+        return ApiResult.success(unreadNum);
+    }
+
     @GetMapping("/private")
     @ApiOperation(value = "获取私聊列表")
     public ApiResponse<List<PrivateChatVO>> getPrivateChatList(HttpServletRequest request) {

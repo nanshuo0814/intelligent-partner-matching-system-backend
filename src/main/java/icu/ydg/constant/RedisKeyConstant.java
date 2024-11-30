@@ -30,4 +30,5 @@ public interface RedisKeyConstant {
     String MESSAGE_FANS_NUM_KEY = "message_fans_num:";
     String CACHE_CHAT_PRIVATE = "chat_private:";
     String CACHE_CHAT_HALL = "chat_hall:";
+    String CACHE_CHAT_TEAM = "chat_team:";
 }

@@ -339,7 +339,11 @@ public class ReportServiceImpl extends ServiceImpl<ReportMapper, Report> impleme
         Report oldReport = reportMapper.selectById(id);
         ThrowUtils.throwIf(oldReport == null, ErrorCode.NOT_FOUND_ERROR);
         Integer status = reportUpdateRequest.getStatus();
+        Integer type = reportUpdateRequest.getType();
+        Long reportId = reportUpdateRequest.getReportId();
         oldReport.setStatus(status);
+        oldReport.setType(type);
+        oldReport.setReportId(reportId);
         oldReport.setContent(reportUpdateRequest.getContent());
         // 参数校验
         validReport(oldReport, false);

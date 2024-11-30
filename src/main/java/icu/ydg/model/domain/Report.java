@@ -33,7 +33,7 @@ public class Report extends CommonBaseEntity implements Serializable {
     /**
      * 类型（0：用户，1：帖子文章，2：帖子评论，3：聊天）
      */
-    @ApiModelProperty(value = "类型（0：用户，1：帖子文章，2：帖子评论，3：聊天）")
+    @ApiModelProperty(value = "类型（0：用户，1：帖子文章，2：帖子评论，3：聊天，4：队伍）")
     @TableField(value = "type")
     private Integer type;
 

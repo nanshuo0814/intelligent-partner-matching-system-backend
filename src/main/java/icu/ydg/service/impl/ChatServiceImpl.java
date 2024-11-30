@@ -5,6 +5,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -15,6 +16,7 @@ import icu.ydg.constant.UserConstant;
 import icu.ydg.exception.BusinessException;
 import icu.ydg.mapper.ChatMapper;
 import icu.ydg.model.domain.Chat;
+import icu.ydg.model.domain.Team;
 import icu.ydg.model.domain.User;
 import icu.ydg.model.dto.IdRequest;
 import icu.ydg.model.dto.chat.*;
@@ -23,6 +25,7 @@ import icu.ydg.model.vo.chat.ChatMessageVO;
 import icu.ydg.model.vo.chat.ChatVO;
 import icu.ydg.model.vo.user.UserVO;
 import icu.ydg.service.ChatService;
+import icu.ydg.service.TeamService;
 import icu.ydg.service.UserService;
 import icu.ydg.utils.JsonUtils;
 import icu.ydg.utils.SqlUtils;
@@ -55,6 +58,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     private ChatMapper chatMapper;
     @Resource
     private RedisUtils redisUtils;
+    @Resource
+    private TeamService teamService;
     // todo 如果后续需要点赞或收藏可自行添加
     //@Resource
     //private ChatPraiseMapper chatPraiseMapper;
@@ -472,6 +477,144 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         }).sorted().collect(Collectors.toList());
     }
 
+    /**
+     * 阅读私聊消息
+     *
+     * @param loginId  登录id
+     * @param remoteId 遥远id
+     * @return {@link Boolean}
+     */
+    @Override
+    public Boolean readPrivateMessage(Long loginId, Long remoteId) {
+        LambdaUpdateWrapper<Chat> chatLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        chatLambdaUpdateWrapper.eq(Chat::getCreateBy, remoteId)
+                .eq(Chat::getToId, loginId)
+                .eq(Chat::getChatType, 1)
+                .set(Chat::getIsRead, 1);
+        return this.update(chatLambdaUpdateWrapper);
+    }
+
+    /**
+     * 获取团队聊天
+     *
+     * @param chatRequest 聊天请求
+     * @param chatType    聊天类型
+     * @param loginUser   登录用户
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
+    @Override
+    public List<ChatMessageVO> getTeamChat(ChatRequest chatRequest, int chatType, User loginUser) {
+        Long teamId = chatRequest.getTeamId();
+        if (teamId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "请求有误");
+        }
+        List<ChatMessageVO> chatRecords = getCache(RedisKeyConstant.CACHE_CHAT_TEAM, String.valueOf(teamId));
+        if (chatRecords != null) {
+            List<ChatMessageVO> chatMessageVOS = checkIsMyMessage(loginUser, chatRecords);
+            saveCache(RedisKeyConstant.CACHE_CHAT_TEAM, String.valueOf(teamId), chatMessageVOS);
+            return chatMessageVOS;
+        }
+        Team team = teamService.getById(teamId);
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getChatType, chatType).eq(Chat::getTeamId, teamId);
+        List<ChatMessageVO> chatMessageVOS = returnMessage(loginUser, team.getCreateBy(), chatLambdaQueryWrapper);
+        saveCache(RedisKeyConstant.CACHE_CHAT_TEAM, String.valueOf(teamId), chatMessageVOS);
+        return chatMessageVOS;
+    }
+
+    /**
+     * 获取私聊未读消息数量
+     *
+     * @param userId id
+     * @return {@link Integer}
+     */
+    @Override
+    public Integer getUnReadPrivateNum(Long userId) {
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, 1)
+                .eq(Chat::getIsRead, 0);
+        return Math.toIntExact(this.count(chatLambdaQueryWrapper));
+    }
+
+    /**
+     * 删除密钥
+     *
+     * @param key 钥匙
+     * @param id  id
+     */
+    @Override
+    public void deleteKey(String key, String id) {
+        if (key.equals(RedisKeyConstant.CACHE_CHAT_HALL)) {
+            redisUtils.del(key);
+        } else {
+            redisUtils.del(key + id);
+        }
+    }
+
+    /**
+     * 获得大厅聊天
+     *
+     * @param chatType  聊天类型
+     * @param loginUser 登录用户
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
+    @Override
+    public List<ChatMessageVO> getHallChat(int chatType, User loginUser) {
+        List<ChatMessageVO> chatRecords = getCache(RedisKeyConstant.CACHE_CHAT_HALL, String.valueOf(loginUser.getId()));
+        if (chatRecords != null) {
+            List<ChatMessageVO> chatMessageVOS = checkIsMyMessage(loginUser, chatRecords);
+            saveCache(RedisKeyConstant.CACHE_CHAT_HALL, String.valueOf(loginUser.getId()), chatMessageVOS);
+            return chatMessageVOS;
+        }
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getChatType, chatType);
+        List<ChatMessageVO> chatMessageVOS = returnMessage(loginUser, null, chatLambdaQueryWrapper);
+        saveCache(RedisKeyConstant.CACHE_CHAT_HALL, String.valueOf(loginUser.getId()), chatMessageVOS);
+        return chatMessageVOS;
+    }
+    /**
+     * 返回消息
+     *
+     * @param loginUser              登录用户
+     * @param userId                 用户id
+     * @param chatLambdaQueryWrapper 聊天lambda查询包装器
+     * @return {@link List}<{@link ChatMessageVO}>
+     */
+    private List<ChatMessageVO> returnMessage(User loginUser,
+                                              Long userId,
+                                              LambdaQueryWrapper<Chat> chatLambdaQueryWrapper) {
+        List<Chat> chatList = this.list(chatLambdaQueryWrapper);
+        return chatList.stream().map(chat -> {
+            ChatMessageVO chatMessageVo = chatResult(chat.getCreateBy(), chat.getText());
+            boolean isCaptain = userId != null && userId.equals(chat.getCreateBy());
+            if (userService.getById(chat.getCreateBy()).getUserRole() == UserConstant.ADMIN_ROLE || isCaptain) {
+                chatMessageVo.setIsAdmin(true);
+            }
+            if (chat.getCreateBy().equals(loginUser.getId())) {
+                chatMessageVo.setIsMy(true);
+            }
+            chatMessageVo.setCreateTime(DateUtil.format(chat.getCreateTime(), "yyyy年MM月dd日 HH:mm:ss"));
+            return chatMessageVo;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 检查是我信息
+     *
+     * @param loginUser   登录用户
+     * @param chatRecords 聊天记录
+     * @return {@link List }<{@link ChatMessageVO }>
+     */
+    private List<ChatMessageVO> checkIsMyMessage(User loginUser, List<ChatMessageVO> chatRecords) {
+        return chatRecords.stream().peek(chat -> {
+            if (!Objects.equals(chat.getFromUser().getId(), loginUser.getId()) && chat.getIsMy()) {
+                chat.setIsMy(false);
+            }
+            if (Objects.equals(chat.getFromUser().getId(), loginUser.getId()) && !chat.getIsMy()) {
+                chat.setIsMy(true);
+            }
+        }).collect(Collectors.toList());
+    }
 
     /**
      * 获取未读消息数量

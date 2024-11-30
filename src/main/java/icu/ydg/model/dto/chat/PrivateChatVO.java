@@ -11,7 +11,7 @@ import java.util.Date;
 /**
  * 私人聊天vo
  *
- * @author 南烁
+ * @author 袁德光
  * @date 2024/11/28
  */
 @Data
