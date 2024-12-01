@@ -3,6 +3,8 @@ package icu.ydg.model.domain;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,15 +12,18 @@ import java.util.Date;
 
 /**
  * 聊天表
+ *
  * @TableName chat
  */
-@TableName(value ="chat")
+@TableName(value = "chat")
 @Data
+@ApiModel(value = "Chat", description = "聊天")
 public class Chat implements Serializable {
     /**
      * id
      */
     @TableId(value = "id")
+    @ApiModelProperty(value = "id")
     private Long id;
 
     /**
@@ -46,7 +51,7 @@ public class Chat implements Serializable {
     private String text;
 
     /**
-     * 聊天类型 1-私聊 2-群聊
+     * 聊天类型 1-私聊 2-队伍群聊 3-大厅聊天
      */
     @TableField(value = "chat_type")
     private Integer chatType;

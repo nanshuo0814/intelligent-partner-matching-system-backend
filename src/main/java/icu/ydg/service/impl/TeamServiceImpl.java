@@ -2,8 +2,6 @@ package icu.ydg.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -12,7 +10,6 @@ import icu.ydg.constant.PageConstant;
 import icu.ydg.constant.UserConstant;
 import icu.ydg.exception.BusinessException;
 import icu.ydg.mapper.TeamMapper;
-import icu.ydg.mapper.UserTeamMapper;
 import icu.ydg.model.domain.Team;
 import icu.ydg.model.domain.User;
 import icu.ydg.model.domain.UserTeam;
@@ -402,6 +399,21 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (!oldTeam.getCreateBy().equals(loginUser.getId()) && !userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "你当前暂无该权限！");
         }
+    }
+
+    /**
+     * 团队num
+     *
+     * @param userId 用户id
+     * @return long
+     */
+    @Override
+    public long getUnReadTeamNum(Long userId) {
+        //LambdaQueryWrapper<UserTeam> queryWrapper = new LambdaQueryWrapper<>();
+        //queryWrapper.eq(UserTeam::getUserId, userId)
+        //            .isNull(UserTeam::getReadTime);
+        //return userTeamService.count(queryWrapper);
+        return 1;
     }
 
     /**

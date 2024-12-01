@@ -13,6 +13,7 @@ import icu.ydg.model.dto.userTeam.UserTeamAddRequest;
 import icu.ydg.model.dto.userTeam.UserTeamQueryRequest;
 import icu.ydg.model.dto.userTeam.UserTeamUpdateRequest;
 import icu.ydg.model.vo.userTeam.UserTeamVO;
+import icu.ydg.model.dto.userTeam.UserKickRequest;
 import icu.ydg.service.UserService;
 import icu.ydg.service.UserTeamService;
 import icu.ydg.utils.ThrowUtils;
@@ -42,6 +43,22 @@ public class UserTeamController {
     private UserService userService;
 
     // region 增删改查
+
+    /**
+     * 队长踢出队员
+     *
+     * @param userKickRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/kick")
+    @ApiOperation(value = "队长踢出队员")
+    @Verify(checkAuth = UserConstant.USER_ROLE)
+    public ApiResponse<Long> kickUserFromTeam(@RequestBody UserKickRequest userKickRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(userKickRequest == null || userKickRequest.getUserId() <= 0, ErrorCode.PARAMS_ERROR);
+        return ApiResult.success(userTeamService.kickUser(userKickRequest, request), "用户已被踢出！");
+    }
+    
 
     /**
      * 创建用户队伍

@@ -5,14 +5,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import icu.ydg.model.domain.UserTeam;
 import icu.ydg.model.dto.IdRequest;
+import icu.ydg.model.dto.userTeam.UserKickRequest;
 import icu.ydg.model.dto.userTeam.UserTeamAddRequest;
 import icu.ydg.model.dto.userTeam.UserTeamQueryRequest;
 import icu.ydg.model.dto.userTeam.UserTeamUpdateRequest;
 import icu.ydg.model.vo.userTeam.UserTeamVO;
 
-import java.util.List;
-
 import javax.servlet.http.HttpServletRequest;
+import java.util.List;
 
 /**
  * 用户队伍服务
@@ -108,5 +108,20 @@ public interface UserTeamService extends IService<UserTeam> {
     */
     void onlyMeOrAdministratorCanDo(HttpServletRequest request, Long id);
 
+    /**
+     * 按用户id获取已加入团队id
+     *
+     * @param userId 用户id
+     * @return {@link List }<{@link Long }>
+     */
     List<Long> getJoinedTeamIdsByUserId(Long userId);
+
+    /**
+     * kick用户
+     *
+     * @param userKickRequest 用户踢请求
+     * @param request         请求
+     * @return int
+     */
+    int kickUser(UserKickRequest userKickRequest, HttpServletRequest request);
 }

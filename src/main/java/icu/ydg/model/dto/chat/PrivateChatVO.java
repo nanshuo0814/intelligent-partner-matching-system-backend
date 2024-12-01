@@ -1,5 +1,6 @@
 package icu.ydg.model.dto.chat;
 
+import icu.ydg.model.vo.team.TeamVO;
 import icu.ydg.model.vo.user.UserVO;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -25,6 +26,12 @@ public class PrivateChatVO implements Serializable, Comparable<PrivateChatVO> {
      */
     @ApiModelProperty(value = "用户")
     private UserVO user;
+
+    /**
+     * 队伍
+     */
+    @ApiModelProperty(value = "队伍")
+    private TeamVO team;
 
     /**
      * 最后一条消息

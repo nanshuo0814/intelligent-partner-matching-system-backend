@@ -23,11 +23,13 @@ import icu.ydg.model.dto.chat.*;
 import icu.ydg.model.enums.sort.ChatSortFieldEnums;
 import icu.ydg.model.vo.chat.ChatMessageVO;
 import icu.ydg.model.vo.chat.ChatVO;
+import icu.ydg.model.vo.team.TeamVO;
 import icu.ydg.model.vo.user.UserVO;
 import icu.ydg.model.vo.ws.WebSocketVO;
 import icu.ydg.service.ChatService;
 import icu.ydg.service.TeamService;
 import icu.ydg.service.UserService;
+import icu.ydg.service.UserTeamService;
 import icu.ydg.utils.JsonUtils;
 import icu.ydg.utils.SqlUtils;
 import icu.ydg.utils.ThrowUtils;
@@ -61,6 +63,8 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     private RedisUtils redisUtils;
     @Resource
     private TeamService teamService;
+    @Resource
+    private UserTeamService userTeamService;
     // todo 如果后续需要点赞或收藏可自行添加
     //@Resource
     //private ChatPraiseMapper chatPraiseMapper;
@@ -533,7 +537,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     public Integer getUnReadPrivateNum(Long userId) {
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
         chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, 1)
-                .eq(Chat::getIsRead, 0);
+                .eq(Chat::getIsRead, 2);
         return Math.toIntExact(this.count(chatLambdaQueryWrapper));
     }
 
@@ -550,6 +554,60 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         } else {
             redisUtils.del(key + id);
         }
+    }
+
+    /**
+     * 获取团队列表
+     *
+     * @param userId 用户id
+     * @return {@link List }<{@link PrivateChatVO }>
+     */
+    @Override
+    public List<PrivateChatVO> getTeamList(Long userId) {
+        // 根据userId获取到用户加入的队伍
+        List<Long> joinedTeamIds = userTeamService.getJoinedTeamIdsByUserId(userId);
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.in(Chat::getTeamId, joinedTeamIds).eq(Chat::getChatType, 2);
+        List<Chat> chatList = this.list(chatLambdaQueryWrapper);
+        HashSet<Long> teamIdSet = new HashSet<>();
+        chatList.forEach((chat) -> {
+            Long teamId = chat.getTeamId();
+            teamIdSet.add(teamId);
+            if (teamIdSet.contains(teamId)) {
+                teamIdSet.add(teamId);
+                return;
+            }
+        });
+        List<Team> teamList = teamService.listByIds(teamIdSet);
+        return teamList.stream().map((team) -> {
+            PrivateChatVO privateChatVO = new PrivateChatVO();
+            privateChatVO.setTeam(TeamVO.objToVo(team));
+            Pair<String, Date> pair = getTeamLastMessage(team.getId());
+            privateChatVO.setLastMessage(pair.getKey());
+            privateChatVO.setLastMessageDate(pair.getValue());
+            privateChatVO.setUnReadNum(getUnreadNum(userId, team.getId()));
+            return privateChatVO;
+        }).sorted().collect(Collectors.toList());
+    }
+
+    /**
+     * 获取团队最后一条消息
+     *
+     * @param teamId 团队id
+     * @return {@link Pair }<{@link String }, {@link Date }>
+     */
+    private Pair<String, Date> getTeamLastMessage(Long teamId) {
+        LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Chat::getChatType, 2)
+                .eq(Chat::getTeamId, teamId)
+                .orderByDesc(Chat::getCreateTime)
+                .last("LIMIT 1"); // 确保只获取一条记录
+        Chat chat = this.getOne(chatLambdaQueryWrapper);
+        // 空值检查，避免空指针异常
+        if (chat == null) {
+            return Pair.of(null, null); // 或者你可以返回一个适当的默认值
+        }
+        return Pair.of(chat.getText(), chat.getCreateTime());
     }
 
     /**

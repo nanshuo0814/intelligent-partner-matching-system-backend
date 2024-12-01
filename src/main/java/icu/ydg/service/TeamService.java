@@ -98,5 +98,13 @@ public interface TeamService extends IService<Team> {
     */
     void onlyMeOrAdministratorCanDo(HttpServletRequest request, Long id);
 
+    /**
+     * 团队num
+     *
+     * @param userId 用户id
+     * @return long
+     */
+    long getUnReadTeamNum(Long userId);
+
     // Page<TeamVO> getTeamVOByIdsWithPagination(TeamQueryRequest teamQueryRequest);
 }

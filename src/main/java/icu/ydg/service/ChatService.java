@@ -200,4 +200,13 @@ public interface ChatService extends IService<Chat> {
      * @param id  id
      */
     void deleteKey(String key, String id);
+
+    /**
+     * 获取团队列表
+     *
+     * @param id id
+     * @return {@link List }<{@link PrivateChatVO }>
+     */
+    List<PrivateChatVO> getTeamList(Long id);
+
 }

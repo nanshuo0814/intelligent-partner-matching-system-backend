@@ -2,8 +2,6 @@ package icu.ydg.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -11,18 +9,16 @@ import icu.ydg.common.ErrorCode;
 import icu.ydg.constant.PageConstant;
 import icu.ydg.constant.UserConstant;
 import icu.ydg.exception.BusinessException;
-import icu.ydg.mapper.TeamMapper;
 import icu.ydg.mapper.UserTeamMapper;
 import icu.ydg.model.domain.Team;
 import icu.ydg.model.domain.User;
 import icu.ydg.model.domain.UserTeam;
 import icu.ydg.model.dto.IdRequest;
-import icu.ydg.model.dto.team.TeamQueryRequest;
+import icu.ydg.model.dto.userTeam.UserKickRequest;
 import icu.ydg.model.dto.userTeam.UserTeamAddRequest;
 import icu.ydg.model.dto.userTeam.UserTeamQueryRequest;
 import icu.ydg.model.dto.userTeam.UserTeamUpdateRequest;
 import icu.ydg.model.enums.sort.UserTeamSortFieldEnums;
-import icu.ydg.model.vo.team.TeamVO;
 import icu.ydg.model.vo.user.UserVO;
 import icu.ydg.model.vo.userTeam.UserTeamVO;
 import icu.ydg.service.TeamService;
@@ -32,7 +28,6 @@ import icu.ydg.utils.SqlUtils;
 import icu.ydg.utils.ThrowUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -74,6 +69,33 @@ public class UserTeamServiceImpl extends ServiceImpl<UserTeamMapper, UserTeam> i
         // 转为队伍 ID 列表
         return selectList.stream().map(UserTeam::getTeamId).collect(Collectors.toList());
     }
+
+    /**
+     * kick用户
+     *
+     * @param userKickRequest 用户踢请求
+     * @param request         请求
+     * @return int
+     */
+    @Override
+    public int kickUser(UserKickRequest userKickRequest, HttpServletRequest request) {
+        Long userId = userKickRequest.getUserId();
+        ThrowUtils.throwIf(userService.getById(userId) == null, "用户不存在");
+        LambdaQueryWrapper<UserTeam> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserTeam::getCreateBy, userId).eq(UserTeam::getTeamId, userKickRequest.getTeamId());
+        UserTeam userTeam = userTeamMapper.selectOne(queryWrapper);
+        ThrowUtils.throwIf(userTeam == null, "用户不在队伍里");
+        User loginUser = userService.getLoginUser(request);
+        Long teamId = userKickRequest.getTeamId();
+        Team team = teamService.getById(teamId);
+        ThrowUtils.throwIf(team == null, "队伍不存在");
+        ThrowUtils.throwIf(!userService.isAdmin(request) && !team.getCreateBy().equals(loginUser.getId()), ErrorCode.NO_AUTH_ERROR, "只有管理员或队伍队长可以踢出队员");
+        ThrowUtils.throwIf(userTeamMapper.deleteById(userTeam.getId()) <= 0, ErrorCode.OPERATION_ERROR);
+        team.setCurrentNum(team.getCurrentNum() - 1);
+        ThrowUtils.throwIf(!teamService.updateById(team), ErrorCode.OPERATION_ERROR);
+        return 1;
+    }
+
     /**
      * 添加用户队伍
      *

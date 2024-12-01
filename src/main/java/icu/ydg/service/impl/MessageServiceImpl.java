@@ -57,6 +57,10 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Resource
     @Lazy
     private FollowService followService;
+    @Resource
+    private ChatService chatService;
+    @Resource
+    private TeamService teamService;
 
     /**
     * 添加消息
@@ -364,6 +368,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         }
     }
 
+    /**
+     * 有新消息
+     *
+     * @param userId 用户id
+     * @return boolean
+     */
     @Override
     public boolean hasNewMessage(Long userId) {
         String postLike = RedisKeyConstant.MESSAGE_POST_COMMENT_NUM_KEY + userId;
@@ -383,15 +393,27 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             return blogNum > 0;
         }
         // todo 聊天消息
-        //Integer unReadPrivateNum = chatService.getUnReadPrivateNum(userId);
-        //return unReadPrivateNum > 0;
-        return false;
+        Integer unReadPrivateNum = chatService.getUnReadPrivateNum(userId);
+        return unReadPrivateNum > 0;
     }
 
+    /**
+     * 获取消息num
+     *
+     * @param userId 用户id
+     * @return long
+     */
     @Override
     public long getMessageNum(Long userId) {
+        // 评论消息
         long postCommentNum = this.getPostCommentNum(userId);
+        // 粉丝关注消息
         long fansNum = this.getFansNum(userId);
+        // 私聊消息
+        long privateNum = chatService.getUnReadPrivateNum(userId);
+        // 队伍消息
+        long teamNum = teamService.getUnReadTeamNum(userId);
+        // 官方大厅消息
         LambdaQueryWrapper<Message> messageLambdaQueryWrapper = new LambdaQueryWrapper<>();
         messageLambdaQueryWrapper.eq(Message::getToId, userId).eq(Message::getIsRead, 0);
         return this.count(messageLambdaQueryWrapper) + postCommentNum + fansNum;

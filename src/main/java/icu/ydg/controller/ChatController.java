@@ -115,6 +115,12 @@ public class ChatController {
         return ApiResult.success(unreadNum);
     }
 
+    /**
+     * 获取私人聊天列表
+     *
+     * @param request 请求
+     * @return {@link ApiResponse }<{@link List }<{@link PrivateChatVO }>>
+     */
     @GetMapping("/private")
     @ApiOperation(value = "获取私聊列表")
     public ApiResponse<List<PrivateChatVO>> getPrivateChatList(HttpServletRequest request) {
@@ -124,6 +130,23 @@ public class ChatController {
         }
         List<PrivateChatVO> userList = chatService.getPrivateList(loginUser.getId());
         return ApiResult.success(userList);
+    }
+
+    /**
+     * 获取团队聊天列表
+     *
+     * @param request 请求
+     * @return {@link ApiResponse }<{@link List }<{@link PrivateChatVO }>>
+     */
+    @GetMapping("/team")
+    @ApiOperation(value = "获取队伍列表")
+    public ApiResponse<List<PrivateChatVO>> getTeamChatList(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        List<PrivateChatVO> teamList = chatService.getTeamList(loginUser.getId());
+        return ApiResult.success(teamList);
     }
 
     /**
