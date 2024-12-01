@@ -55,7 +55,7 @@ public class ChatController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        List<ChatMessageVO> hallChat = chatService.getHallChat(3, loginUser);
+        List<ChatMessageVO> hallChat = chatService.getHallChat(5, loginUser);
         return ApiResult.success(hallChat);
     }
 
@@ -77,7 +77,7 @@ public class ChatController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest, 2, loginUser);
+        List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest, 4, loginUser);
         return ApiResult.success(teamChat);
     }
 
@@ -150,6 +150,23 @@ public class ChatController {
     }
 
     /**
+     * 获取团队聊天消息条数
+     *
+     * @param request 请求
+     * @return {@link ApiResponse }<{@link List }<{@link PrivateChatVO }>>
+     */
+    @GetMapping("/team/num")
+    @ApiOperation(value = "获取队伍未读消息数量")
+    public ApiResponse<Integer> getUnreadTeamNum(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Integer num = chatService.getUnReadTeamNum(loginUser.getId());
+        return ApiResult.success(num);
+    }
+
+    /**
      * 获取私人聊天
      *
      * @param chatRequest 聊天请求
@@ -167,7 +184,7 @@ public class ChatController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        List<ChatMessageVO> privateChat = chatService.getChat(chatRequest, 1, loginUser);
+        List<ChatMessageVO> privateChat = chatService.getChat(chatRequest, 3, loginUser);
         return ApiResult.success(privateChat);
     }
 

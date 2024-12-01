@@ -32,10 +32,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -94,6 +91,20 @@ public class UserTeamServiceImpl extends ServiceImpl<UserTeamMapper, UserTeam> i
         team.setCurrentNum(team.getCurrentNum() - 1);
         ThrowUtils.throwIf(!teamService.updateById(team), ErrorCode.OPERATION_ERROR);
         return 1;
+    }
+
+    /**
+     * 获取成员id
+     *
+     * @param teamId 团队id
+     * @return {@link List }<{@link Long }>
+     */
+    @Override
+    public List<Long> getMemberIds(Long teamId) {
+        LambdaQueryWrapper<UserTeam> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserTeam::getTeamId, teamId);
+        List<UserTeam> userTeams = userTeamMapper.selectList(queryWrapper);
+        return userTeams.stream().map(UserTeam::getCreateBy).collect(Collectors.toList());
     }
 
     /**

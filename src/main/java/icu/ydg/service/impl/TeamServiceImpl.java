@@ -409,11 +409,7 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
      */
     @Override
     public long getUnReadTeamNum(Long userId) {
-        //LambdaQueryWrapper<UserTeam> queryWrapper = new LambdaQueryWrapper<>();
-        //queryWrapper.eq(UserTeam::getUserId, userId)
-        //            .isNull(UserTeam::getReadTime);
-        //return userTeamService.count(queryWrapper);
-        return 1;
+        return 1L;
     }
 
     /**

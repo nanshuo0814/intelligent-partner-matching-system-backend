@@ -7,15 +7,11 @@ import cn.hutool.json.JSONUtil;
 import icu.ydg.config.HttpSessionConfig;
 import icu.ydg.constant.RedisKeyConstant;
 import icu.ydg.constant.UserConstant;
-import icu.ydg.model.domain.Chat;
-import icu.ydg.model.domain.Team;
-import icu.ydg.model.domain.User;
+import icu.ydg.model.domain.*;
 import icu.ydg.model.dto.message.MessageRequest;
 import icu.ydg.model.vo.chat.ChatMessageVO;
 import icu.ydg.model.vo.ws.WebSocketVO;
-import icu.ydg.service.ChatService;
-import icu.ydg.service.TeamService;
-import icu.ydg.service.UserService;
+import icu.ydg.service.*;
 import icu.ydg.utils.JsonUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -66,10 +62,17 @@ public class WebSocket {
      */
     private static ChatService chatService;
     /**
+     * 聊天服务
+     */
+    private static MessageService messageService;
+    /**
      * 团队服务
      */
     private static TeamService teamService;
-
+    /**
+     * 团队服务
+     */
+    private static UserTeamService userTeamService;
     /**
      * 房间在线人数
      */
@@ -129,6 +132,16 @@ public class WebSocket {
     }
 
     /**
+     * 设置热图服务
+     *
+     * @param messageService 消息服务
+     */
+    @Resource
+    public void setHeatMapService(MessageService messageService) {
+        WebSocket.messageService = messageService;
+    }
+
+    /**
      * 集热地图服务
      *
      * @param teamService 团队服务
@@ -137,8 +150,15 @@ public class WebSocket {
     public void setHeatMapService(TeamService teamService) {
         WebSocket.teamService = teamService;
     }
-
-
+    /**
+     * 集热地图服务
+     *
+     * @param userTeamService 团队服务
+     */
+    @Resource
+    public void setHeatMapService(UserTeamService userTeamService) {
+        WebSocket.userTeamService = userTeamService;
+    }
     /**
      * 队伍内群发消息
      *
@@ -265,10 +285,10 @@ public class WebSocket {
         Integer chatType = messageRequest.getChatType();
         User fromUser = userService.getById(userId);
         Team team = teamService.getById(teamId);
-        if (chatType == 1) {
+        if (chatType == 3) {
             // 私聊
             privateChat(fromUser, toId, text, chatType);
-        } else if (chatType == 2) {
+        } else if (chatType == 4) {
             // 队伍内聊天
             teamChat(fromUser, text, team, chatType);
         } else {
@@ -305,6 +325,7 @@ public class WebSocket {
         try {
             broadcast(String.valueOf(team.getId()), toJson);
             saveChat(user.getId(), null, text, team.getId(), chatType);
+            saveMessage(user.getId(), null, text, team.getId(), chatType);
             chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_TEAM, String.valueOf(team.getId()));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -336,6 +357,7 @@ public class WebSocket {
         String toJson = JsonUtils.objToJson(chatMessageVo);
         sendAllMessage(toJson);
         saveChat(user.getId(), null, text, null, chatType);
+        saveMessage(user.getId(), null, text, null, chatType);
         chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_HALL, String.valueOf(user.getId()));
     }
 
@@ -357,6 +379,7 @@ public class WebSocket {
         String toJson = JsonUtils.objToJson(chatMessageVo);
         sendOneMessage(toId.toString(), toJson);
         saveChat(user.getId(), toId, text, null, chatType);
+        saveMessage(user.getId(), toId, text, null, chatType);
         chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_PRIVATE, user.getId() + "-" + toId);
         chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_PRIVATE, toId + "-" + user.getId());
     }
@@ -392,6 +415,60 @@ public class WebSocket {
             chat.setTeamId(teamId);
         }
         chatService.save(chat);
+    }
+
+    /**
+     * 保存消息
+     *
+     * @param userId   用户id
+     * @param toId     至id
+     * @param text     文本
+     * @param teamId   团队id
+     * @param chatType 聊天类型
+     */
+    private void saveMessage(Long userId, Long toId, String text, Long teamId, Integer chatType) {
+        // 队伍，添加到每个队员消息
+        if (chatType.equals(4) && teamId != null && teamId > 0) {
+            //    获取到每个队员的id
+            List<Long> memberIds = userTeamService.getMemberIds(teamId);
+            // 为每个队员储存消息
+            for (Long memberId : memberIds) {
+                Message message = new Message();
+                message.setType(chatType);
+                message.setContent(String.valueOf(text));
+                message.setIsRead(0);
+                message.setCreateBy(userId);
+                message.setUpdateBy(userId);
+                message.setToId(memberId);
+                messageService.save(message);
+            }
+        }
+        // 私聊
+        if (chatType.equals(3) && toId != null && toId > 0) {
+            Message message = new Message();
+            message.setType(chatType);
+            message.setContent(String.valueOf(text));
+            message.setIsRead(0);
+            message.setCreateBy(userId);
+            message.setUpdateBy(userId);
+            message.setToId(toId);
+            messageService.save(message);
+        }
+        // 官方聊天，为所有用户储存未读的消息
+        if (chatType.equals(5)) {
+            // 查询所有用户
+            List<User> userList = userService.list();
+            for (User user : userList) {
+                Message message = new Message();
+                message.setType(chatType);
+                message.setContent(String.valueOf(text));
+                message.setIsRead(0);
+                message.setCreateBy(userId);
+                message.setUpdateBy(userId);
+                message.setToId(user.getId());
+                messageService.save(message);
+            }
+        }
     }
 
     /**

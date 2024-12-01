@@ -177,4 +177,5 @@ public interface MessageService extends IService<Message> {
     long getPostCommentNum(Long id);
 
     long getFollowNum(Long id);
+
 }

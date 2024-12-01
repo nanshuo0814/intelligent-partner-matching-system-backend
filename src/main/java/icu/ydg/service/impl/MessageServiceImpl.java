@@ -559,6 +559,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                 .collect(Collectors.toList());
     }
 
+    /**
+     * 获取帖子评论num
+     *
+     * @param id id
+     * @return long
+     */
     @Override
     public long getPostCommentNum(Long id) {
         String commentNumKey = RedisKeyConstant.MESSAGE_POST_COMMENT_NUM_KEY + id;
@@ -572,6 +578,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         }
     }
 
+    /**
+     * 获取关注num
+     *
+     * @param id id
+     * @return long
+     */
     @Override
     public long getFollowNum(Long id) {
         String followNumKey = RedisKeyConstant.MESSAGE_FANS_NUM_KEY + id;

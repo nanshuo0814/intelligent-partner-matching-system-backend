@@ -209,4 +209,11 @@ public interface ChatService extends IService<Chat> {
      */
     List<PrivateChatVO> getTeamList(Long id);
 
+    /**
+     * 团队num
+     *
+     * @param id id
+     * @return {@link List }<{@link PrivateChatVO }>
+     */
+    Integer getUnReadTeamNum(Long id);
 }

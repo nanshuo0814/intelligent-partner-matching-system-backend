@@ -51,7 +51,7 @@ public class Chat implements Serializable {
     private String text;
 
     /**
-     * 聊天类型 1-私聊 2-队伍群聊 3-大厅聊天
+     * 聊天类型 3-私聊 4-队伍群聊 5-大厅聊天
      */
     @TableField(value = "chat_type")
     private Integer chatType;

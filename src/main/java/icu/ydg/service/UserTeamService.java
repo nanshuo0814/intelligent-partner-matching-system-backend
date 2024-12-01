@@ -124,4 +124,12 @@ public interface UserTeamService extends IService<UserTeam> {
      * @return int
      */
     int kickUser(UserKickRequest userKickRequest, HttpServletRequest request);
+
+    /**
+     * 获取成员id
+     *
+     * @param teamId 团队id
+     * @return {@link List }<{@link Long }>
+     */
+    List<Long> getMemberIds(Long teamId);
 }
