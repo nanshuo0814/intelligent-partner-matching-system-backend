@@ -15,6 +15,7 @@ import icu.ydg.model.vo.user.UserVO;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 消息服务
@@ -215,10 +216,11 @@ public interface MessageService extends IService<Message> {
     /**
      * 读取hall num
      *
-     * @param id id
-     * @return {@link Integer }
+     * @param id            id
+     * @param directApiCall 直接api调用
+     * @return {@link Map }<{@link String }, {@link Object }>
      */
-    Integer getUnReadHallNum(Long id);
+    Object getUnReadHallNum(Long id,Boolean directApiCall);
 
     /**
      * 阅读大厅信息

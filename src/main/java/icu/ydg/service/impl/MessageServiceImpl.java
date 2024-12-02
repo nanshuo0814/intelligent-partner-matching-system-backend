@@ -413,7 +413,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         // 队伍消息
         long teamNum = getUnReadTeamNum(userId);
         // 官方大厅消息
-        long hallNum = getUnReadHallNum(userId);
+        long hallNum = (long) getUnReadHallNum(userId,false);
         return hallNum + privateNum + teamNum + postCommentNum + fansNum;
     }
 
@@ -660,18 +660,36 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     }
 
     /**
-     * 读取大厅未读消息数量
+     * 读取hall num
      *
-     * @param id id
-     * @return {@link Integer }
+     * @param id            id
+     * @param directApiCall 直接api调用
+     * @return {@link Map }<{@link String }, {@link Object }>
      */
     @Override
-    public Integer getUnReadHallNum(Long id) {
+    public Object getUnReadHallNum(Long id,Boolean directApiCall) {
+        if (directApiCall) {
+            Map<String, Object> map = new HashMap<>();
+            LambdaQueryWrapper<Message> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+            chatLambdaQueryWrapper.eq(Message::getToId, id).eq(Message::getType, MessageTypeEnums.OFFICIAL_CHAT.getValue())
+                    .ne(Message::getCreateBy, id)
+                    .eq(Message::getIsRead, MessageReadStatusEnums.UNREAD);
+            map.put("num", Math.toIntExact(this.count(chatLambdaQueryWrapper)));
+            // 带上最新一条消息和最新时间发送的消息
+            chatLambdaQueryWrapper.clear();
+            chatLambdaQueryWrapper.eq(Message::getType, MessageTypeEnums.OFFICIAL_CHAT.getValue())
+                    .orderByDesc(Message::getCreateTime)
+                    .last("limit 1");
+            Message message = this.getOne(chatLambdaQueryWrapper);
+            map.put("lastMessageTime", message.getCreateTime());
+            map.put("lastMessage", message.getContent());
+            return map;
+        }
         LambdaQueryWrapper<Message> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
         chatLambdaQueryWrapper.eq(Message::getToId, id).eq(Message::getType, MessageTypeEnums.OFFICIAL_CHAT.getValue())
                 .ne(Message::getCreateBy, id)
                 .eq(Message::getIsRead, MessageReadStatusEnums.UNREAD);
-        return Math.toIntExact(this.count(chatLambdaQueryWrapper));
+        return this.count(chatLambdaQueryWrapper);
     }
 
     /**

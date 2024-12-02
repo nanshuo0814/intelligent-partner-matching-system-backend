@@ -454,7 +454,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     @Override
     public List<PrivateChatVO> getPrivateList(Long userId) {
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        chatLambdaQueryWrapper.eq(Chat::getCreateBy, userId).eq(Chat::getChatType, 3);
+        chatLambdaQueryWrapper.eq(Chat::getCreateBy, userId).eq(Chat::getChatType, MessageTypeEnums.PRIVATE_CHAT.getValue());
         List<Chat> mySend = this.list(chatLambdaQueryWrapper);
         HashSet<Long> userIdSet = new HashSet<>();
         mySend.forEach((chat) -> {
@@ -462,7 +462,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             userIdSet.add(toId);
         });
         chatLambdaQueryWrapper.clear();
-        chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, 3);
+        chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, MessageTypeEnums.PRIVATE_CHAT.getValue());
         List<Chat> myReceive = this.list(chatLambdaQueryWrapper);
         myReceive.forEach((chat) -> {
             Long fromId = chat.getCreateBy();
@@ -482,23 +482,6 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             return privateChatVO;
         }).sorted().collect(Collectors.toList());
     }
-
-    /**
-     * 阅读私聊消息
-     *
-     * @param loginId  登录id
-     * @param remoteId 遥远id
-     * @return {@link Boolean}
-     */
-    //@Override
-    //public Boolean readPrivateMessage(Long loginId, Long remoteId) {
-    //    LambdaUpdateWrapper<Chat> chatLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
-    //    chatLambdaUpdateWrapper.eq(Chat::getCreateBy, remoteId)
-    //            .eq(Chat::getToId, loginId)
-    //            .eq(Chat::getChatType, 3)
-    //            .set(Chat::getIsRead, 1);
-    //    return this.update(chatLambdaUpdateWrapper);
-    //}
 
     /**
      * 获取团队聊天
@@ -529,20 +512,6 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     }
 
     /**
-     * 获取私聊未读消息数量
-     *
-     * @param userId id
-     * @return {@link Integer}
-     */
-    //@Override
-    //public Integer getUnReadPrivateNum(Long userId) {
-    //    LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-    //    chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, 3)
-    //            .eq(Chat::getIsRead, 2);
-    //    return Math.toIntExact(this.count(chatLambdaQueryWrapper));
-    //}
-
-    /**
      * 删除密钥
      *
      * @param key 钥匙
@@ -568,7 +537,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         // 根据userId获取到用户加入的队伍
         List<Long> joinedTeamIds = userTeamService.getJoinedTeamIdsByUserId(userId);
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        chatLambdaQueryWrapper.in(Chat::getTeamId, joinedTeamIds).eq(Chat::getChatType, 4);
+        chatLambdaQueryWrapper.in(Chat::getTeamId, joinedTeamIds).eq(Chat::getChatType, MessageTypeEnums.TEAM_CHAT.getValue());
         List<Chat> chatList = this.list(chatLambdaQueryWrapper);
         HashSet<Long> teamIdSet = new HashSet<>();
         chatList.forEach((chat) -> {
@@ -609,20 +578,6 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
     }
 
     /**
-     * 团队num
-     *
-     * @param userId 用户id
-     * @return {@link Integer }
-     */
-    //@Override
-    //public Integer getUnReadTeamNum(Long userId) {
-    //    LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-    //    chatLambdaQueryWrapper.eq(Chat::getToId, userId).eq(Chat::getChatType, 4)
-    //            .eq(Chat::getIsRead, 2);
-    //    return Math.toIntExact(this.count(chatLambdaQueryWrapper));
-    //}
-
-    /**
      * 获取团队最后一条消息
      *
      * @param teamId 团队id
@@ -630,7 +585,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
      */
     private Pair<String, Date> getTeamLastMessage(Long teamId) {
         LambdaQueryWrapper<Chat> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        chatLambdaQueryWrapper.eq(Chat::getChatType, 4)
+        chatLambdaQueryWrapper.eq(Chat::getChatType, MessageTypeEnums.TEAM_CHAT.getValue())
                 .eq(Chat::getTeamId, teamId)
                 .orderByDesc(Chat::getCreateTime)
                 .last("LIMIT 1"); // 确保只获取一条记录
@@ -735,13 +690,13 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         chatLambdaQueryWrapper
                 .eq(Chat::getCreateBy, loginId)
                 .eq(Chat::getToId, remoteId)
-                .eq(Chat::getChatType, 3)
+                .eq(Chat::getChatType, MessageTypeEnums.PRIVATE_CHAT.getValue())
                 .orderBy(true, false, Chat::getCreateTime);
         List<Chat> chatList1 = this.list(chatLambdaQueryWrapper);
         chatLambdaQueryWrapper.clear();
         chatLambdaQueryWrapper.eq(Chat::getCreateBy, remoteId)
                 .eq(Chat::getToId, loginId)
-                .eq(Chat::getChatType, 3)
+                .eq(Chat::getChatType, MessageTypeEnums.PRIVATE_CHAT.getValue())
                 .orderBy(true, false, Chat::getCreateTime);
         List<Chat> chatList2 = this.list(chatLambdaQueryWrapper);
         if (chatList1.isEmpty() && chatList2.isEmpty()) {

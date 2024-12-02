@@ -157,15 +157,6 @@ public interface ChatService extends IService<Chat> {
     List<PrivateChatVO> getPrivateList(Long id);
 
     /**
-     * 阅读私人信息
-     *
-     * @param id       id
-     * @param remoteId 远程id
-     * @return {@link Boolean }
-     */
-    //Boolean readPrivateMessage(Long id, Long remoteId);
-
-    /**
      * 获取团队聊天
      *
      * @param chatRequest 聊天请求
@@ -184,15 +175,6 @@ public interface ChatService extends IService<Chat> {
      */
     List<ChatMessageVO> getHallChat(int chatType, User loginUser);
 
-
-    /**
-     * get un read private num
-     *
-     * @param userId 用户id
-     * @return {@link Integer }
-     */
-    //Integer getUnReadPrivateNum(Long userId);
-
     /**
      * 删除密钥
      *
@@ -209,11 +191,4 @@ public interface ChatService extends IService<Chat> {
      */
     List<PrivateChatVO> getTeamList(Long id);
 
-    /**
-     * 团队num
-     *
-     * @param id id
-     * @return {@link List }<{@link PrivateChatVO }>
-     */
-    //Integer getUnReadTeamNum(Long id);
 }

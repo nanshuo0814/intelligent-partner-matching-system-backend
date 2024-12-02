@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 消息接口
@@ -54,12 +55,12 @@ public class MessageController {
      */
     @GetMapping("/hall/num")
     @ApiOperation(value = "获取大厅未读消息数量")
-    public ApiResponse<Integer> getUnreadHallNum(HttpServletRequest request) {
+    public ApiResponse<Map<String, Object>> getUnreadHallNum(HttpServletRequest request) {
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        Integer num = messageService.getUnReadHallNum(loginUser.getId());
+        Map<String, Object> num = (Map<String, Object>) messageService.getUnReadHallNum(loginUser.getId(),true);
         return ApiResult.success(num);
     }
 
