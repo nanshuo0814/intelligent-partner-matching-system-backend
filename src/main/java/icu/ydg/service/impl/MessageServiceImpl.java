@@ -681,6 +681,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
                     .orderByDesc(Message::getCreateTime)
                     .last("limit 1");
             Message message = this.getOne(chatLambdaQueryWrapper);
+            if (message == null) {
+                return map;
+            }
             map.put("lastMessageTime", message.getCreateTime());
             map.put("lastMessage", message.getContent());
             return map;

@@ -238,11 +238,13 @@ public class PostServiceImpl extends ServiceImpl<PostMapper, Post>
                 .filter(StringUtils::isNotBlank)
                 .ifPresent(oldPost::setCoverImage);
         Integer status = postUpdateRequest.getStatus();
-        PostStatusEnums enumByValue = PostStatusEnums.getEnumByValue(status);
-        if (enumByValue == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR, "帖子状态错误！");
+        if (status != null) {
+            PostStatusEnums enumByValue = PostStatusEnums.getEnumByValue(status);
+            if (enumByValue == null) {
+                throw new BusinessException(ErrorCode.PARAMS_ERROR, "帖子状态错误！");
+            }
+            oldPost.setStatus(status);
         }
-        oldPost.setStatus(status);
         // 参数校验
         validPost(oldPost, false);
         // 更新
