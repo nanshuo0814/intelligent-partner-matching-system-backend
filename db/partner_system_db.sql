@@ -168,7 +168,6 @@ create table if not exists chat
     to_id       bigint                                  null comment '接收消息id',
     text        varchar(512) collate utf8mb4_unicode_ci not null comment '消息内容',
     chat_type   tinyint                                 not null comment '聊天类型 3-私聊 4-队伍群聊 5-大厅聊天',
-    is_read     tinyint  default 0                      null comment '是否已读 1-已读 2-未读',
     team_id     bigint                                  null comment '群聊id',
     create_time datetime default CURRENT_TIMESTAMP      null comment '创建时间',
     update_time datetime default CURRENT_TIMESTAMP      null comment '更新时间',

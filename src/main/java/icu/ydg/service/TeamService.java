@@ -104,7 +104,7 @@ public interface TeamService extends IService<Team> {
      * @param userId 用户id
      * @return long
      */
-    long getUnReadTeamNum(Long userId);
+    //long getUnReadTeamNum(Long userId);
 
     // Page<TeamVO> getTeamVOByIdsWithPagination(TeamQueryRequest teamQueryRequest);
 }

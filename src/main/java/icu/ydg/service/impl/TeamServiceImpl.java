@@ -56,9 +56,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
     @Resource
     @Lazy
     private UserTeamService userTeamService;
-    @Resource
-    @Lazy
-    private TeamService teamService;
 
     // todo 如果后续需要点赞或收藏可自行添加
 
@@ -399,17 +396,6 @@ public class TeamServiceImpl extends ServiceImpl<TeamMapper, Team> implements Te
         if (!oldTeam.getCreateBy().equals(loginUser.getId()) && !userService.isAdmin(request)) {
             throw new BusinessException(ErrorCode.NO_AUTH_ERROR, "你当前暂无该权限！");
         }
-    }
-
-    /**
-     * 团队num
-     *
-     * @param userId 用户id
-     * @return long
-     */
-    @Override
-    public long getUnReadTeamNum(Long userId) {
-        return 1L;
     }
 
     /**

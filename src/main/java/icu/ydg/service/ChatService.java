@@ -163,7 +163,7 @@ public interface ChatService extends IService<Chat> {
      * @param remoteId 远程id
      * @return {@link Boolean }
      */
-    Boolean readPrivateMessage(Long id, Long remoteId);
+    //Boolean readPrivateMessage(Long id, Long remoteId);
 
     /**
      * 获取团队聊天
@@ -191,7 +191,7 @@ public interface ChatService extends IService<Chat> {
      * @param userId 用户id
      * @return {@link Integer }
      */
-    Integer getUnReadPrivateNum(Long userId);
+    //Integer getUnReadPrivateNum(Long userId);
 
     /**
      * 删除密钥
@@ -215,5 +215,5 @@ public interface ChatService extends IService<Chat> {
      * @param id id
      * @return {@link List }<{@link PrivateChatVO }>
      */
-    Integer getUnReadTeamNum(Long id);
+    //Integer getUnReadTeamNum(Long id);
 }

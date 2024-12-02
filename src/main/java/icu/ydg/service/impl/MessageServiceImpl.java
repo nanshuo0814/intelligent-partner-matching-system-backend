@@ -2,6 +2,7 @@ package icu.ydg.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.support.SFunction;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,6 +17,8 @@ import icu.ydg.model.dto.IdRequest;
 import icu.ydg.model.dto.message.MessageAddRequest;
 import icu.ydg.model.dto.message.MessageQueryRequest;
 import icu.ydg.model.dto.message.MessageUpdateRequest;
+import icu.ydg.model.enums.message.MessageReadStatusEnums;
+import icu.ydg.model.enums.message.MessageTypeEnums;
 import icu.ydg.model.enums.sort.MessageSortFieldEnums;
 import icu.ydg.model.vo.message.MessageVO;
 import icu.ydg.model.vo.user.UserVO;
@@ -57,10 +60,6 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Resource
     @Lazy
     private FollowService followService;
-    @Resource
-    private ChatService chatService;
-    @Resource
-    private TeamService teamService;
 
     /**
     * 添加消息
@@ -393,7 +392,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             return blogNum > 0;
         }
         // todo 聊天消息
-        Integer unReadPrivateNum = chatService.getUnReadPrivateNum(userId);
+        Integer unReadPrivateNum = getUnReadPrivateNum(userId);
         return unReadPrivateNum > 0;
     }
 
@@ -410,13 +409,12 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         // 粉丝关注消息
         long fansNum = this.getFansNum(userId);
         // 私聊消息
-        long privateNum = chatService.getUnReadPrivateNum(userId);
+        long privateNum = getUnReadPrivateNum(userId);
         // 队伍消息
-        long teamNum = teamService.getUnReadTeamNum(userId);
+        long teamNum = getUnReadTeamNum(userId);
         // 官方大厅消息
-        LambdaQueryWrapper<Message> messageLambdaQueryWrapper = new LambdaQueryWrapper<>();
-        messageLambdaQueryWrapper.eq(Message::getToId, userId).eq(Message::getIsRead, 0);
-        return this.count(messageLambdaQueryWrapper) + postCommentNum + fansNum;
+        long hallNum = getUnReadHallNum(userId);
+        return hallNum + privateNum + teamNum + postCommentNum + fansNum;
     }
 
     /**
@@ -595,6 +593,100 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         } else {
             return 0;
         }
+    }
+
+    /**
+     * 获取私聊未读消息数量
+     *
+     * @param userId id
+     * @return {@link Integer}
+     */
+    @Override
+    public Integer getUnReadPrivateNum(Long userId) {
+        LambdaQueryWrapper<Message> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Message::getToId, userId).eq(Message::getType, MessageTypeEnums.PRIVATE_CHAT.getValue())
+                .eq(Message::getIsRead, MessageReadStatusEnums.UNREAD);
+        return Math.toIntExact(this.count(chatLambdaQueryWrapper));
+    }
+
+    /**
+     * 团队num
+     *
+     * @param userId 用户id
+     * @return {@link Integer }
+     */
+    @Override
+    public Integer getUnReadTeamNum(Long userId) {
+        LambdaQueryWrapper<Message> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Message::getToId, userId).eq(Message::getType, MessageTypeEnums.TEAM_CHAT.getValue())
+                .ne(Message::getCreateBy, userId)
+                .eq(Message::getIsRead, MessageReadStatusEnums.UNREAD);
+        return Math.toIntExact(this.count(chatLambdaQueryWrapper));
+    }
+
+    /**
+     * 阅读私聊消息
+     *
+     * @param loginId  登录id
+     * @param remoteId 遥远id
+     * @return {@link Boolean}
+     */
+    @Override
+    public Boolean readPrivateMessage(Long loginId, Long remoteId) {
+        LambdaUpdateWrapper<Message> chatLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        chatLambdaUpdateWrapper.eq(Message::getCreateBy, remoteId)
+                .eq(Message::getToId, loginId)
+                .eq(Message::getType, MessageTypeEnums.PRIVATE_CHAT.getValue())
+                .set(Message::getIsRead, MessageReadStatusEnums.READER.getValue());
+        return this.update(chatLambdaUpdateWrapper);
+    }
+
+    /**
+     * 阅读团队消息
+     *
+     * @param id     id
+     * @param teamId 团队id
+     * @return {@link Boolean }
+     */
+    @Override
+    public Boolean readTeamMessage(Long id, Long teamId) {
+        LambdaUpdateWrapper<Message> chatLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        chatLambdaUpdateWrapper.eq(Message::getTeamId, teamId)
+                .ne(Message::getCreateBy, id)
+                .eq(Message::getToId, id)
+                .eq(Message::getType, MessageTypeEnums.TEAM_CHAT.getValue())
+                .set(Message::getIsRead, MessageReadStatusEnums.READER.getValue());
+        return this.update(chatLambdaUpdateWrapper);
+    }
+
+    /**
+     * 读取大厅未读消息数量
+     *
+     * @param id id
+     * @return {@link Integer }
+     */
+    @Override
+    public Integer getUnReadHallNum(Long id) {
+        LambdaQueryWrapper<Message> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();
+        chatLambdaQueryWrapper.eq(Message::getToId, id).eq(Message::getType, MessageTypeEnums.OFFICIAL_CHAT.getValue())
+                .ne(Message::getCreateBy, id)
+                .eq(Message::getIsRead, MessageReadStatusEnums.UNREAD);
+        return Math.toIntExact(this.count(chatLambdaQueryWrapper));
+    }
+
+    /**
+     * 阅读大厅信息
+     *
+     * @param id id
+     * @return {@link Boolean }
+     */
+    @Override
+    public Boolean readHallMessage(Long id) {
+        LambdaUpdateWrapper<Message> chatLambdaUpdateWrapper = new LambdaUpdateWrapper<>();
+        chatLambdaUpdateWrapper.eq(Message::getToId, id).eq(Message::getType, MessageTypeEnums.OFFICIAL_CHAT.getValue())
+                .ne(Message::getCreateBy, id)
+                .set(Message::getIsRead, MessageReadStatusEnums.READER.getValue());
+        return this.update(chatLambdaUpdateWrapper);
     }
 
 }

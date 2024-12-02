@@ -15,11 +15,13 @@ import java.util.stream.Collectors;
  */
 @Getter
 public enum MessageTypeEnums {
-
-    POST_PRAISE("帖子点赞", 1),
-    FRIEND_APPLY("好友申请", 2),
-    FANS("粉丝", 3),
-    CHAT("聊天", 4);
+    //1：伙伴关注，2：帖子评论，3：私聊，4：队伍群聊，5：官方公共群聊
+    FOLLOW("伙伴关注", 1),
+    POST_PRAISE("帖子点赞", 2),
+    PRIVATE_CHAT("聊天", 3),
+    TEAM_CHAT("队伍群聊", 4),
+    OFFICIAL_CHAT("官方公共群聊", 5),
+    FRIEND_APPLY("好友申请", 6);
 
     private final String text;
 

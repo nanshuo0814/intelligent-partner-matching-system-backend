@@ -11,6 +11,7 @@ import icu.ydg.model.domain.Chat;
 import icu.ydg.model.domain.User;
 import icu.ydg.model.dto.IdRequest;
 import icu.ydg.model.dto.chat.*;
+import icu.ydg.model.enums.message.MessageTypeEnums;
 import icu.ydg.model.vo.chat.ChatMessageVO;
 import icu.ydg.model.vo.chat.ChatVO;
 import icu.ydg.service.ChatService;
@@ -55,7 +56,7 @@ public class ChatController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        List<ChatMessageVO> hallChat = chatService.getHallChat(5, loginUser);
+        List<ChatMessageVO> hallChat = chatService.getHallChat(MessageTypeEnums.OFFICIAL_CHAT.getValue(), loginUser);
         return ApiResult.success(hallChat);
     }
 
@@ -77,42 +78,30 @@ public class ChatController {
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest, 4, loginUser);
+        List<ChatMessageVO> teamChat = chatService.getTeamChat(chatRequest,  MessageTypeEnums.TEAM_CHAT.getValue(), loginUser);
         return ApiResult.success(teamChat);
     }
 
     /**
-     * 阅读私人信息
+     * 获取私人聊天
      *
-     * @param request  请求
-     * @param remoteId 远程id
-     * @return {@link ApiResponse }<{@link Boolean }>
+     * @param chatRequest 聊天请求
+     * @param request     请求
+     * @return {@link ApiResponse }<{@link List }<{@link ChatMessageVO }>>
      */
-    @PostMapping("/private/read")
-    public ApiResponse<Boolean> readPrivateMessage(HttpServletRequest request, Long remoteId) {
+    @PostMapping("/privateChat")
+    @ApiOperation(value = "获取私聊")
+    public ApiResponse<List<ChatMessageVO>> getPrivateChat(@RequestBody ChatRequest chatRequest,
+                                                           HttpServletRequest request) {
+        if (chatRequest == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
         User loginUser = userService.getLoginUser(request);
         if (loginUser == null) {
             throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
         }
-        Boolean flag = chatService.readPrivateMessage(loginUser.getId(), remoteId);
-        return ApiResult.success(flag);
-    }
-
-    /**
-     * 获取私聊未读消息数量
-     *
-     * @param request 要求
-     * @return {@link ApiResponse}<{@link Integer}>
-     */
-    @GetMapping("/private/num")
-    @ApiOperation(value = "获取私聊未读消息数量")
-    public ApiResponse<Integer> getUnreadPrivateNum(HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
-        if (loginUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        Integer unreadNum = chatService.getUnReadPrivateNum(loginUser.getId());
-        return ApiResult.success(unreadNum);
+        List<ChatMessageVO> privateChat = chatService.getChat(chatRequest, MessageTypeEnums.PRIVATE_CHAT.getValue(), loginUser);
+        return ApiResult.success(privateChat);
     }
 
     /**
@@ -147,45 +136,6 @@ public class ChatController {
         }
         List<PrivateChatVO> teamList = chatService.getTeamList(loginUser.getId());
         return ApiResult.success(teamList);
-    }
-
-    /**
-     * 获取团队聊天消息条数
-     *
-     * @param request 请求
-     * @return {@link ApiResponse }<{@link List }<{@link PrivateChatVO }>>
-     */
-    @GetMapping("/team/num")
-    @ApiOperation(value = "获取队伍未读消息数量")
-    public ApiResponse<Integer> getUnreadTeamNum(HttpServletRequest request) {
-        User loginUser = userService.getLoginUser(request);
-        if (loginUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        Integer num = chatService.getUnReadTeamNum(loginUser.getId());
-        return ApiResult.success(num);
-    }
-
-    /**
-     * 获取私人聊天
-     *
-     * @param chatRequest 聊天请求
-     * @param request     请求
-     * @return {@link ApiResponse }<{@link List }<{@link ChatMessageVO }>>
-     */
-    @PostMapping("/privateChat")
-    @ApiOperation(value = "获取私聊")
-    public ApiResponse<List<ChatMessageVO>> getPrivateChat(@RequestBody ChatRequest chatRequest,
-                                                           HttpServletRequest request) {
-        if (chatRequest == null) {
-            throw new BusinessException(ErrorCode.PARAMS_ERROR);
-        }
-        User loginUser = userService.getLoginUser(request);
-        if (loginUser == null) {
-            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
-        }
-        List<ChatMessageVO> privateChat = chatService.getChat(chatRequest, 3, loginUser);
-        return ApiResult.success(privateChat);
     }
 
     // region 增删改查

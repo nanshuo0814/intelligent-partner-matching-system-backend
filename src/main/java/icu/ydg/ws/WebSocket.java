@@ -9,6 +9,7 @@ import icu.ydg.constant.RedisKeyConstant;
 import icu.ydg.constant.UserConstant;
 import icu.ydg.model.domain.*;
 import icu.ydg.model.dto.message.MessageRequest;
+import icu.ydg.model.enums.message.MessageTypeEnums;
 import icu.ydg.model.vo.chat.ChatMessageVO;
 import icu.ydg.model.vo.ws.WebSocketVO;
 import icu.ydg.service.*;
@@ -428,7 +429,7 @@ public class WebSocket {
      */
     private void saveMessage(Long userId, Long toId, String text, Long teamId, Integer chatType) {
         // 队伍，添加到每个队员消息
-        if (chatType.equals(4) && teamId != null && teamId > 0) {
+        if (chatType.equals(MessageTypeEnums.TEAM_CHAT.getValue()) && teamId != null && teamId > 0) {
             //    获取到每个队员的id
             List<Long> memberIds = userTeamService.getMemberIds(teamId);
             // 为每个队员储存消息
@@ -440,11 +441,12 @@ public class WebSocket {
                 message.setCreateBy(userId);
                 message.setUpdateBy(userId);
                 message.setToId(memberId);
+                message.setTeamId(teamId);
                 messageService.save(message);
             }
         }
         // 私聊
-        if (chatType.equals(3) && toId != null && toId > 0) {
+        if (chatType.equals(MessageTypeEnums.PRIVATE_CHAT.getValue()) && toId != null && toId > 0) {
             Message message = new Message();
             message.setType(chatType);
             message.setContent(String.valueOf(text));
@@ -455,7 +457,7 @@ public class WebSocket {
             messageService.save(message);
         }
         // 官方聊天，为所有用户储存未读的消息
-        if (chatType.equals(5)) {
+        if (chatType.equals(MessageTypeEnums.OFFICIAL_CHAT.getValue())) {
             // 查询所有用户
             List<User> userList = userService.list();
             for (User user : userList) {

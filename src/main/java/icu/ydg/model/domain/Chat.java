@@ -59,8 +59,8 @@ public class Chat implements Serializable {
     /**
      * 是否已读 1-已读 2-未读
      */
-    @TableField(value = "is_read")
-    private Integer isRead;
+    //@TableField(value = "is_read")
+    //private Integer isRead;
 
     /**
      * 群聊id

@@ -6,10 +6,12 @@ import icu.ydg.common.ApiResponse;
 import icu.ydg.common.ApiResult;
 import icu.ydg.common.ErrorCode;
 import icu.ydg.constant.UserConstant;
+import icu.ydg.exception.BusinessException;
 import icu.ydg.model.domain.Message;
 import icu.ydg.model.domain.Post;
 import icu.ydg.model.domain.User;
 import icu.ydg.model.dto.IdRequest;
+import icu.ydg.model.dto.chat.PrivateChatVO;
 import icu.ydg.model.dto.message.MessageAddRequest;
 import icu.ydg.model.dto.message.MessageQueryRequest;
 import icu.ydg.model.dto.message.MessageUpdateRequest;
@@ -44,6 +46,106 @@ public class MessageController {
     @Resource
     private UserService userService;
 
+    /**
+     * 获取大厅聊天消息条数
+     *
+     * @param request 请求
+     * @return {@link ApiResponse }<{@link List }<{@link PrivateChatVO }>>
+     */
+    @GetMapping("/hall/num")
+    @ApiOperation(value = "获取大厅未读消息数量")
+    public ApiResponse<Integer> getUnreadHallNum(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Integer num = messageService.getUnReadHallNum(loginUser.getId());
+        return ApiResult.success(num);
+    }
+
+    /**
+     * 阅读大厅信息
+     *
+     * @param request 请求
+     * @return {@link ApiResponse }<{@link Boolean }>
+     */
+    @PostMapping("/hall/read")
+    public ApiResponse<Boolean> readHallMessage(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Boolean flag = messageService.readHallMessage(loginUser.getId());
+        return ApiResult.success(flag);
+    }
+
+    /**
+     * 获取团队聊天消息条数
+     *
+     * @param request 请求
+     * @return {@link ApiResponse }<{@link List }<{@link PrivateChatVO }>>
+     */
+    @GetMapping("/team/num")
+    @ApiOperation(value = "获取队伍未读消息数量")
+    public ApiResponse<Integer> getUnreadTeamNum(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Integer num = messageService.getUnReadTeamNum(loginUser.getId());
+        return ApiResult.success(num);
+    }
+
+    /**
+     * 阅读私人信息
+     *
+     * @param request       请求
+     * @param readIdRequest 读取id请求
+     * @return {@link ApiResponse }<{@link Boolean }>
+     */
+    @PostMapping("/private/read")
+    public ApiResponse<Boolean> readPrivateMessage(HttpServletRequest request, IdRequest readIdRequest) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Boolean flag = messageService.readPrivateMessage(loginUser.getId(), readIdRequest.getId());
+        return ApiResult.success(flag);
+    }
+
+    /**
+     * 阅读团队消息
+     *
+     * @param request     请求
+     * @param teamRequest 团队请求
+     * @return {@link ApiResponse }<{@link Boolean }>
+     */
+    @PostMapping("/team/read")
+    public ApiResponse<Boolean> readTeamMessage(HttpServletRequest request, IdRequest teamRequest) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Boolean flag = messageService.readTeamMessage(loginUser.getId(), teamRequest.getId());
+        return ApiResult.success(flag);
+    }
+
+    /**
+     * 获取私聊未读消息数量
+     *
+     * @param request 要求
+     * @return {@link ApiResponse}<{@link Integer}>
+     */
+    @GetMapping("/private/num")
+    @ApiOperation(value = "获取私聊未读消息数量")
+    public ApiResponse<Integer> getUnreadPrivateNum(HttpServletRequest request) {
+        User loginUser = userService.getLoginUser(request);
+        if (loginUser == null) {
+            throw new BusinessException(ErrorCode.NOT_LOGIN_ERROR);
+        }
+        Integer unreadNum = messageService.getUnReadPrivateNum(loginUser.getId());
+        return ApiResult.success(unreadNum);
+    }
 
     /**
      * 用户有新消息

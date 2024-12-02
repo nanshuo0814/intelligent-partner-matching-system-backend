@@ -178,4 +178,53 @@ public interface MessageService extends IService<Message> {
 
     long getFollowNum(Long id);
 
+    /**
+     * get un read private num
+     *
+     * @param id id
+     * @return {@link Integer }
+     */
+    Integer getUnReadPrivateNum(Long id);
+
+    /**
+     * 团队num
+     *
+     * @param id id
+     * @return {@link Integer }
+     */
+    Integer getUnReadTeamNum(Long id);
+
+    /**
+     * 阅读私人信息
+     *
+     * @param id       id
+     * @param remoteId 远程id
+     * @return {@link Boolean }
+     */
+    Boolean readPrivateMessage(Long id, Long remoteId);
+
+    /**
+     * 阅读团队消息
+     *
+     * @param id         id
+     * @param readableId 可读id
+     * @return {@link Boolean }
+     */
+    Boolean readTeamMessage(Long id, Long readableId);
+
+    /**
+     * 读取hall num
+     *
+     * @param id id
+     * @return {@link Integer }
+     */
+    Integer getUnReadHallNum(Long id);
+
+    /**
+     * 阅读大厅信息
+     *
+     * @param id id
+     * @return {@link Boolean }
+     */
+    Boolean readHallMessage(Long id);
 }
