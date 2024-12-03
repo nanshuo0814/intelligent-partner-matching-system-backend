@@ -6,11 +6,9 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import icu.ydg.common.ErrorCode;
 import icu.ydg.exception.BusinessException;
 import icu.ydg.mapper.PostPraiseMapper;
-import icu.ydg.model.domain.Message;
 import icu.ydg.model.domain.Post;
 import icu.ydg.model.domain.PostPraise;
 import icu.ydg.model.domain.User;
-import icu.ydg.model.enums.message.MessageTypeEnums;
 import icu.ydg.service.MessageService;
 import icu.ydg.service.PostPraiseService;
 import icu.ydg.service.PostService;
@@ -113,14 +111,6 @@ public class PostPraiseServiceImpl extends ServiceImpl<PostPraiseMapper, PostPra
                         .eq(Post::getId, postId)
                         .set(Post::getPraiseNum, post.getPraiseNum() + thumbNumChange) // 根据thumbNumChange的值增加或减少点赞数
                         .update();
-                // 更新Redis中的点赞数，判断是否有key，若没有设置为1，有则加1
-                //redisUtils.incr(RedisKeyConstant.MESSAGE_POST_PRAISE_NUM_KEY + post.getCreateBy(), 1);
-                Message message = new Message();
-                message.setType(MessageTypeEnums.POST_PRAISE.getValue());
-                message.setCreateBy(userId);
-                message.setToId(post.getCreateBy());
-                message.setContent(String.valueOf(post.getId()));
-                messageService.save(message);
                 return updateResult ? thumbNumChange : 0; // 返回变化的值，1或-1
             } else {
                 // 如果当前点赞数不足以执行减少操作，则抛出异常或进行其他处理
