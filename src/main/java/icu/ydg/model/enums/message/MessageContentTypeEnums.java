@@ -1,4 +1,4 @@
-package icu.ydg.model.enums.file;
+package icu.ydg.model.enums.message;
 
 import lombok.Getter;
 import org.apache.commons.lang3.ObjectUtils;
@@ -8,26 +8,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * 文件上传业务类型枚举
+ * 消息类型枚举
  *
  * @author 袁德光
- * @date 2024/01/26 14:23:52
+ * @date 2024/11/07
  */
 @Getter
-public enum FileUploadTypeEnums {
-
-    // todo 业务类型枚举
-    USER_AVATAR("用户头像", "user_avatar"),
-    CHAT_IMAGE("聊天图片", "chat_img"),
-    HOME_PAGE_COVER("首页封面", "home_page_cover"),
-    TEAM_COVER("队伍封面", "team_cover"),
-    POST_COVER("帖子封面", "post_cover");
+public enum MessageContentTypeEnums {
+    //1：伙伴关注，2：帖子评论，3：私聊，4：队伍群聊，5：官方公共群聊
+    TEXT("消息文本", 0),
+    IMAGE("图片", 1),
+    VOICE("语音", 2),
+    OTHER("其他", 3),
+    ;
 
     private final String text;
 
-    private final String value;
+    private final Integer value;
 
-    FileUploadTypeEnums(String text, String value) {
+    MessageContentTypeEnums(String text, Integer value) {
         this.text = text;
         this.value = value;
     }
@@ -37,7 +36,7 @@ public enum FileUploadTypeEnums {
      *
      * @return {@code List<String>}
      */
-    public static List<String> getValues() {
+    public static List<Integer> getValues() {
         return Arrays.stream(values()).map(item -> item.value).collect(Collectors.toList());
     }
 
@@ -45,14 +44,14 @@ public enum FileUploadTypeEnums {
      * 按值获取枚举
      * 根据 value 获取枚举
      *
-     * @param value 值
-     * @return {@code FileUploadTypeEnums}
+     * @param value 价值
+     * @return {@code UserGenderEnums}
      */
-    public static FileUploadTypeEnums getEnumByValue(String value) {
+    public static MessageContentTypeEnums getEnumByValue(Integer value) {
         if (ObjectUtils.isEmpty(value)) {
             return null;
         }
-        for (FileUploadTypeEnums anEnum : FileUploadTypeEnums.values()) {
+        for (MessageContentTypeEnums anEnum : MessageContentTypeEnums.values()) {
             if (anEnum.value.equals(value)) {
                 return anEnum;
             }

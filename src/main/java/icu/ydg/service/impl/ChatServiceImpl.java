@@ -412,6 +412,7 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
             if (chat.getCreateBy().equals(loginUser.getId())) {
                 chatMessageVo.setIsMy(true);
             }
+            chatMessageVo.setTextType(chat.getTextType());
             return chatMessageVo;
         }).collect(Collectors.toList());
         saveCache(RedisKeyConstant.CACHE_CHAT_PRIVATE, loginUser.getId() + "-" + String.valueOf(toId), chatMessageVOList);
@@ -632,13 +633,13 @@ public class ChatServiceImpl extends ServiceImpl<ChatMapper, Chat> implements Ch
         List<Chat> chatList = this.list(chatLambdaQueryWrapper);
         return chatList.stream().map(chat -> {
             ChatMessageVO chatMessageVo = chatResult(chat.getCreateBy(), chat.getText());
-            boolean isCaptain = userId != null && userId.equals(chat.getCreateBy());
-            if (userService.getById(chat.getCreateBy()).getUserRole() == UserConstant.ADMIN_ROLE || isCaptain) {
+            if (Objects.equals(userService.getById(chat.getCreateBy()).getUserRole(), UserConstant.ADMIN_ROLE)) {
                 chatMessageVo.setIsAdmin(true);
             }
             if (chat.getCreateBy().equals(loginUser.getId())) {
                 chatMessageVo.setIsMy(true);
             }
+            chatMessageVo.setTextType(chat.getTextType());
             chatMessageVo.setCreateTime(DateUtil.format(chat.getCreateTime(), "yyyy年MM月dd日 HH:mm:ss"));
             return chatMessageVo;
         }).collect(Collectors.toList());

@@ -686,6 +686,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
             }
             map.put("lastMessageTime", message.getCreateTime());
             map.put("lastMessage", message.getContent());
+            map.put("textType", message.getContentType());
             return map;
         }
         LambdaQueryWrapper<Message> chatLambdaQueryWrapper = new LambdaQueryWrapper<>();

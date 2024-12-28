@@ -34,6 +34,12 @@ public class MessageRequest implements Serializable {
      */
     @ApiModelProperty(value = "文本")
     private String text;
+
+    /**
+     * 文本消息内容类型（0：文字，1：图片，2：语音，3：其他）
+     */
+    @ApiModelProperty(value = "文本消息类型")
+    private Integer textType;
     /**
      * 聊天类型
      */

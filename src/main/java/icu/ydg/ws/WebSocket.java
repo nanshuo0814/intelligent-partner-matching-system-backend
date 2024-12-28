@@ -284,17 +284,18 @@ public class WebSocket {
         Long teamId = messageRequest.getTeamId();
         String text = messageRequest.getText();
         Integer chatType = messageRequest.getChatType();
+        Integer textType = messageRequest.getTextType();
         User fromUser = userService.getById(userId);
         Team team = teamService.getById(teamId);
         if (chatType == 3) {
             // 私聊
-            privateChat(fromUser, toId, text, chatType);
+            privateChat(fromUser, toId, text, chatType,textType);
         } else if (chatType == 4) {
             // 队伍内聊天
-            teamChat(fromUser, text, team, chatType);
+            teamChat(fromUser, text, team, chatType,textType);
         } else {
             // 群聊
-            hallChat(fromUser, text, chatType);
+            hallChat(fromUser, text, chatType,textType);
         }
     }
 
@@ -306,7 +307,7 @@ public class WebSocket {
      * @param team     团队
      * @param chatType 聊天类型
      */
-    private void teamChat(User user, String text, Team team, Integer chatType) {
+    private void teamChat(User user, String text, Team team, Integer chatType, Integer textType) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
@@ -314,6 +315,7 @@ public class WebSocket {
         chatMessageVo.setText(text);
         chatMessageVo.setTeamId(team.getId());
         chatMessageVo.setChatType(chatType);
+        chatMessageVo.setTextType(textType);
         chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy-MM-dd HH:mm:ss"));
         if (Objects.equals(user.getId(), team.getCreateBy()) || Objects.equals(user.getUserRole(), UserConstant.ADMIN_ROLE)) {
             chatMessageVo.setIsAdmin(true);
@@ -325,8 +327,8 @@ public class WebSocket {
         String toJson = JsonUtils.objToJson(chatMessageVo);
         try {
             broadcast(String.valueOf(team.getId()), toJson);
-            saveChat(user.getId(), null, text, team.getId(), chatType);
-            saveMessage(user.getId(), null, text, team.getId(), chatType);
+            saveChat(user.getId(), null, text, team.getId(), chatType,textType);
+            saveMessage(user.getId(), null, text, team.getId(), chatType,textType);
             chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_TEAM, String.valueOf(team.getId()));
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -340,13 +342,14 @@ public class WebSocket {
      * @param text     文本
      * @param chatType 聊天类型
      */
-    private void hallChat(User user, String text, Integer chatType) {
+    private void hallChat(User user, String text, Integer chatType,Integer textType) {
         ChatMessageVO chatMessageVo = new ChatMessageVO();
         WebSocketVO fromWebSocketVO = new WebSocketVO();
         BeanUtils.copyProperties(user, fromWebSocketVO);
         chatMessageVo.setFromUser(fromWebSocketVO);
         chatMessageVo.setText(text);
         chatMessageVo.setChatType(chatType);
+        chatMessageVo.setTextType(textType);
         chatMessageVo.setCreateTime(DateUtil.format(new Date(), "yyyy年MM月dd日 HH:mm:ss"));
         if (Objects.equals(user.getUserRole(), UserConstant.ADMIN_ROLE)) {
             chatMessageVo.setIsAdmin(true);
@@ -357,8 +360,8 @@ public class WebSocket {
         }
         String toJson = JsonUtils.objToJson(chatMessageVo);
         sendAllMessage(toJson);
-        saveChat(user.getId(), null, text, null, chatType);
-        saveMessage(user.getId(), null, text, null, chatType);
+        saveChat(user.getId(), null, text, null, chatType,textType);
+        saveMessage(user.getId(), null, text, null, chatType,textType);
         chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_HALL, String.valueOf(user.getId()));
     }
 
@@ -370,7 +373,7 @@ public class WebSocket {
      * @param text     文本
      * @param chatType 聊天类型
      */
-    private void privateChat(User user, Long toId, String text, Integer chatType) {
+    private void privateChat(User user, Long toId, String text, Integer chatType, Integer textType) {
         ChatMessageVO chatMessageVo = chatService
                 .chatResult(user.getId(), toId, text, chatType, DateUtil.date(System.currentTimeMillis()));
         User loginUser = (User) this.httpSession.getAttribute(UserConstant.USER_LOGIN_STATE);
@@ -379,8 +382,8 @@ public class WebSocket {
         }
         String toJson = JsonUtils.objToJson(chatMessageVo);
         sendOneMessage(toId.toString(), toJson);
-        saveChat(user.getId(), toId, text, null, chatType);
-        saveMessage(user.getId(), toId, text, null, chatType);
+        saveChat(user.getId(), toId, text, null, chatType,textType);
+        saveMessage(user.getId(), toId, text, null, chatType,textType);
         chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_PRIVATE, user.getId() + "-" + toId);
         chatService.deleteKey(RedisKeyConstant.CACHE_CHAT_PRIVATE, toId + "-" + user.getId());
     }
@@ -394,7 +397,7 @@ public class WebSocket {
      * @param teamId   团队id
      * @param chatType 聊天类型
      */
-    private void saveChat(Long userId, Long toId, String text, Long teamId, Integer chatType) {
+    private void saveChat(Long userId, Long toId, String text, Long teamId, Integer chatType,Integer textType) {
 //        if (chatType == PRIVATE_CHAT) {
 //            User user = userService.getById(userId);
 //            Set<Long> userIds = stringJsonListToLongSet(user.getFriendIds());
@@ -407,6 +410,7 @@ public class WebSocket {
         chat.setCreateBy(userId);
         chat.setText(String.valueOf(text));
         chat.setChatType(chatType);
+        chat.setTextType(textType);
         chat.setCreateTime(new Date());
         chat.setUpdateBy(userId);
         if (toId != null && toId > 0) {
@@ -427,7 +431,7 @@ public class WebSocket {
      * @param teamId   团队id
      * @param chatType 聊天类型
      */
-    private void saveMessage(Long userId, Long toId, String text, Long teamId, Integer chatType) {
+    private void saveMessage(Long userId, Long toId, String text, Long teamId, Integer chatType,Integer textType) {
         // 队伍，添加到每个队员消息
         if (chatType.equals(MessageTypeEnums.TEAM_CHAT.getValue()) && teamId != null && teamId > 0) {
             //    获取到每个队员的id
@@ -437,6 +441,7 @@ public class WebSocket {
                 Message message = new Message();
                 message.setType(chatType);
                 message.setContent(String.valueOf(text));
+                message.setContentType(textType);
                 message.setIsRead(0);
                 message.setCreateBy(userId);
                 message.setUpdateBy(userId);

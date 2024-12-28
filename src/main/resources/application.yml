@@ -8,8 +8,11 @@ server:
     session:
       cookie: # 自定义 cookie 属性
         max-age: 86400 # 单位秒
-#        domain: localhost
-#        http-only: false
+        # 解决跨域（前后端项目不同的顶级域名跨域 cookie 问题）
+        # https://blog.csdn.net/weixin_66709611/article/details/136673004
+        secure: true # https
+        same-site: none # 允许跨域
+        http-only: true # 禁止通过 JS 访问 cookie
 # todo 公共配置文件
 spring:
   application:

@@ -61,6 +61,12 @@ public class Message implements Serializable {
     @TableField(value = "content")
     @ApiModelProperty(value = "消息内容")
     private String content;
+    /**
+     * 消息内容类型
+     */
+    @TableField(value = "content_type")
+    @ApiModelProperty(value = "消息内容类型")
+    private Integer contentType;
 
     /**
      * 0 未读 ,1 已读

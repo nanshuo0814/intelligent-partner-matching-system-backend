@@ -40,6 +40,13 @@ public class ChatMessageVO implements Serializable {
      */
     @ApiModelProperty(value = "正文")
     private String text;
+
+    /**
+     * 文本（0：文字，1：图片，2：语音，3：其他）
+     */
+    @ApiModelProperty(value = "文本类型")
+    private Integer textType;
+
     /**
      * 是我
      */

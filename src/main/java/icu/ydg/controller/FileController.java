@@ -13,7 +13,6 @@ import icu.ydg.model.domain.User;
 import icu.ydg.model.dto.file.UploadFileRequest;
 import icu.ydg.model.enums.file.FileUploadTypeEnums;
 import icu.ydg.service.UserService;
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Response;
@@ -116,7 +115,7 @@ public class FileController {
         // 文件后缀
         String fileSuffix = FileUtil.getSuffix(multipartFile.getOriginalFilename());
         // 针对type是用户头像
-        if (FileUploadTypeEnums.USER_AVATAR.equals(fileUploadBizEnum)) {
+        if (FileUploadTypeEnums.USER_AVATAR.equals(fileUploadBizEnum) || FileUploadTypeEnums.CHAT_IMAGE.equals(fileUploadBizEnum)) {
             if (fileSize > MAX_SIZE) {
                 throw new BusinessException(ErrorCode.PARAMS_ERROR, "文件大小不能超过 1M");
             }
