@@ -19,6 +19,7 @@ public enum FileUploadTypeEnums {
     // todo 业务类型枚举
     USER_AVATAR("用户头像", "user_avatar"),
     CHAT_IMAGE("聊天图片", "chat_img"),
+    AUDIO_FILE("语音音频", "chat_audio"),
     HOME_PAGE_COVER("首页封面", "home_page_cover"),
     TEAM_COVER("队伍封面", "team_cover"),
     POST_COVER("帖子封面", "post_cover");

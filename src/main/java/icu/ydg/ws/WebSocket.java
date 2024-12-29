@@ -455,6 +455,7 @@ public class WebSocket {
             Message message = new Message();
             message.setType(chatType);
             message.setContent(String.valueOf(text));
+            message.setContentType(textType);
             message.setIsRead(0);
             message.setCreateBy(userId);
             message.setUpdateBy(userId);
@@ -469,6 +470,7 @@ public class WebSocket {
                 Message message = new Message();
                 message.setType(chatType);
                 message.setContent(String.valueOf(text));
+                message.setContentType(textType);
                 message.setIsRead(0);
                 message.setCreateBy(userId);
                 message.setUpdateBy(userId);
