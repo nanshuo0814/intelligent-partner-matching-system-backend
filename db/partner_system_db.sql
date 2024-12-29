@@ -167,6 +167,7 @@ create table if not exists chat
     update_by   bigint unsigned                         not null comment '更新者id',
     to_id       bigint                                  null comment '接收消息id',
     text        varchar(512) collate utf8mb4_unicode_ci not null comment '消息内容',
+    text_type   tinyint                                 not null comment '消息类型 0-文本 1-图片 2-语音 3-其他',
     chat_type   tinyint                                 not null comment '聊天类型 3-私聊 4-队伍群聊 5-大厅聊天',
     team_id     bigint                                  null comment '群聊id',
     create_time datetime default CURRENT_TIMESTAMP      null comment '创建时间',
@@ -210,16 +211,17 @@ create table if not exists friend
 -- 消息表
 create table if not exists message
 (
-    id          bigint unsigned primary key comment '主键',
-    type        tinyint                            not null comment '1：帖子点赞，2：帖子评论，3：私聊，4：队伍群聊，5：官方公共群聊',
-    create_by   bigint unsigned                    not null comment '消息发送的用户id',
-    update_by   bigint unsigned                    not null comment '更新者',
-    to_id       bigint unsigned                    null comment '消息接收的用户id',
-    content     varchar(255)                       not null comment '消息内容',
-    is_read     tinyint  default 0                 not null comment '已读-0 未读 ,1 已读',
-    create_time datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
-    is_delete   tinyint  default 0                 not null comment '逻辑删除，0:默认，1:删除'
+    id           bigint unsigned primary key comment '主键',
+    type         tinyint                            not null comment '1：帖子点赞，2：帖子评论，3：私聊，4：队伍群聊，5：官方公共群聊',
+    create_by    bigint unsigned                    not null comment '消息发送的用户id',
+    update_by    bigint unsigned                    not null comment '更新者',
+    to_id        bigint unsigned                    null comment '消息接收的用户id',
+    content      varchar(255)                       not null comment '消息内容',
+    content_type tinyint                            not null comment '消息内容类型 0-文本 1-图片 2-语音 3-其他',
+    is_read      tinyint  default 0                 not null comment '已读-0 未读 ,1 已读',
+    create_time  datetime default CURRENT_TIMESTAMP not null comment '创建时间',
+    update_time  datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '更新时间',
+    is_delete    tinyint  default 0                 not null comment '逻辑删除，0:默认，1:删除'
 ) comment '消息表' engine = innodb
                    character set utf8mb4
                    collate utf8mb4_unicode_ci;
