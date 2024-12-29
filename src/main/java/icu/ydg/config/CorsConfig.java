@@ -21,9 +21,12 @@ public class CorsConfig implements WebMvcConfigurer {
                 .allowCredentials(true)
                 // todo 放行哪些域名（必须用 patterns，否则 * 会和 allowCredentials 冲突）
                 // 最好制定域名，不要写 *
-                .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .exposedHeaders("*");
+                //.allowedOriginPatterns("*")
+                .allowedOrigins(
+                        "https://partner-admin.pages.dev",
+                        "https://partner-user.pages.dev",
+                        "http://42.194.148.139:5173", "http://localhost:5173", "http://42.194.148.139:9528", "http://localhost:9528"
+                )
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS");
     }
 }
