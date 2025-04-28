@@ -5,18 +5,18 @@ spring:
   # todo 需替换配置
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://42.194.148.139:3306/project_db?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
-    username: nanshuo
-    password: nanshuo
+    url: jdbc:mysql://xxxx:3306/project_db?useSSL=false&useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: xxx
+    password: xxx
   # Redis 配置
   # todo 需替换配置
   redis:
     database: 1
-    host: 42.194.148.139
+    host: xxxx
     port: 6379
     timeout: 5000
     # todo 若你的 Redis 需要密码，请打开注释，并填写密码
-    password: nanshuo
+    password: xxx
 mybatis-plus:
   configuration:
     # 生产环境关闭日志
